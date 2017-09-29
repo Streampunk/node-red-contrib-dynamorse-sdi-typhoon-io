@@ -23,14 +23,16 @@
       maxBuffer : { value : 10, validate : RED.validators.number() },
       description : { value : '' },
       device : { value : '', type : 'device' },
-      deviceIndex : { value : 0, validate : RED.validators.number() },
-      mode : { value : 'Hi50', validate : function (x) {
-        return typeof x === 'string' && x.length === 4;
-      } },
+      deviceIndex: { value: 0, validate: RED.validators.number() },
+      channelIndex: { value: 0, validate: RED.validators.number() },
       format : { value : 'v210', validate : function (x) {
         return typeof x === 'string' && x.length === 4;
-      } }
-    },
+      } },
+      source: { value: 1, validate: RED.validators.number() },
+      compressed: {
+          value: 0, validate: RED.validators.number()
+      }
+  },
     inputs:0,
     outputs:3,
     icon: "funnel.png",
@@ -49,8 +51,12 @@
 <div class="form-row">
   <label for="node-input-maxBuffer"><i class="fa fa-suitcase"></i> max buffer</label>
   <input type="number" id="node-input-maxBuffer" placeholder="10" style="width: 100px">
-  <label for="node-input-deviceIndex" style="text-align: right; width: 80px"><i class="fa fa-list" aria-hidden="true"></i> index</label>
-  <input type="number" id="node-input-deviceIndex" min="0" max="30" placeholder="0" style="width: 100px">
+</div>
+<div class="form-row">
+    <label for="node-input-deviceIndex"><i class="fa fa-list" aria-hidden="true"></i> Device Idx</label>
+    <input type="number" id="node-input-deviceIndex" min="0" max="30" placeholder="0" style="width: 100px">
+    <label for="node-input-channelIndex" style="text-align: right; width: 114px"><i class="fa fa-list" aria-hidden="true"></i> Channel Idx</label>
+    <input type="number" id="node-input-channelIndex" min="0" max="30" placeholder="0" style="width: 100px">
 </div>
 <div class="form-row">
   <label for="node-input-description"><i class="fa fa-info-circle"></i> description</label>
@@ -61,72 +67,27 @@
   <input type="text" id="node-input-device">
 </div>
 <div class="form-row">
-  <label for="node-input-mode"><i class="fa fa-video-camera"></i> mode</label>
-  <select id="node-input-mode">
-    <optgroup label="SD">
-      <option value="ntsc">NTSC</option>
-      <option value="nt23">NTSC2398 (3:2 pulldown)</option>
-      <option value="pal ">PAL</option>
-      <option value="ntsp">NTSCp</option>
-      <option value="palp">PALp</option>
-    </optgroup>
-    <optgroup label="HD 1080 lines">
-      <option value="23ps">HD1080p2398</option>
-      <option value="24ps">HD1080p24</option>
-      <option value="Hp25">HD1080p25</option>
-      <option value="Hp29">HD1080p2997</option>
-      <option value="Hp30">HD1080p30</option>
-      <option value="Hi50" selected>HD1080i50</option>
-      <option value="Hi59">HD1080i5994</option>
-      <option value="Hi60">HD1080i6000 (really 60fps!)</option>
-      <option value="Hp50">HD1080p50</option>
-      <option value="Hp59">HD1080p5994</option>
-      <option value="Hp60">HD1080p6000 (really 60fps!)</option>
-    </optgroup>
-    <optgroup label="HD 720 lines">
-      <option value="hp50">HD720p50</option>
-      <option value="hp59">HD720p5994</option>
-      <option value="hp60">HD720p60</option>
-    </optgroup>
-    <optgroup label="2K">
-      <option value="2k23">2k2398</option>
-      <option value="2k24">2k24</option>
-      <option value="2k25">2k25</option>
-    </optgroup>
-    <optgroup label="4K">
-      <option value="4k23">4K2160p2398</option>
-      <option value="4k24">4K2160p24</option>
-      <option value="4k25">4K2160p25</option>
-      <option value="4k29">4K2160p2997</option>
-      <option value="4k30">4K2160p30</option>
-      <option value="4k50">4K2160p50</option>
-      <option value="4k59">4K2160p5994</option>
-      <option value="4k60">4K2160p60</option>
-    </optgroup>
-    <optgroup label="Unknown">
-      <option value="iunk">Unknown</option>
-    </optgroup>
-  </select>
-</div>
-<div class="form-row">
   <label for="node-input-format"><i class="fa fa-eye"></i> sampling</label>
   <select id="node-input-format">
     <option value="2vuy">8BitYUV</option>
     <option value="v210" selected>10BitYUV</option>
-    <option value="ARGB">8BitARGB</option>
-    <option value="BGRA">8BitBGRA</option>
-    <!-- Big-endian RGB 10-bit per component with SMPTE video levels (64-960). Packed as 2:10:10:10 -->
-    <option value="r210">10BitRGB</option>
-    <!-- Big-endian RGB 12-bit per component with full range (0-4095). Packed as 12-bit per component -->
-    <option value="R12B">12BitRGB</option>
-    <!-- Little-endian RGB 12-bit per component with full range (0-4095). Packed as 12-bit per component -->
-    <option value="R12L">12BitRGBLE</option>
-    <!-- Little-endian 10-bit RGB with SMPTE video levels (64-940) -->
-    <option value="R10l">10BitRGBXLE</option>
-    <!-- Big-endian 10-bit RGB with SMPTE video levels (64-940) -->
-    <option value="R10b">10BitRGBX</option>
   </select>
 </div>
+<div class="form-row">
+  <label for="node-input-source"><i class="fa fa-plug"></i> input source</label>
+  <select id="node-input-source">
+    <option value="1" selected>SDI</option>
+    <option value="0">Ethernet</option>
+  </select>
+</div>
+<div class="form-row">
+  <label for="node-input-compressed"><i class="fa fa-compress"></i> video</label>
+  <select id="node-input-compressed">
+    <option value="0" selected>Uncompressed</option>
+    <option value="1" >Compressed</option>
+  </select>
+</div>
+
 </script>
 
 <style>

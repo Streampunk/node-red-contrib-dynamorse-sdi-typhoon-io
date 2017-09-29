@@ -33,8 +33,13 @@ module.exports = function (RED) {
     if (!this.context().global.get('updated'))
       return this.log('Waiting for global context updated.');
 
-    var capture = new styphoon.Capture(config.deviceIndex,
-      fixBMDCodes(config.mode), fixBMDCodes(config.format));
+    var capture = new styphoon.Capture(
+        parseInt(config.deviceIndex),
+        parseInt(config.channelIndex),
+        fixBMDCodes(config.format),
+        config.source,
+        config.compressed == 1 ? true : false);
+
     var inputStreamMode = capture.getDisplayMode();
 
     this.log('Typhoon input receiving content of format: ' + inputStreamMode);
@@ -47,9 +52,11 @@ module.exports = function (RED) {
     var node = this;
     var frameCount = 0;
     var grainDuration = styphoon.modeGrainDuration(inputStreamMode);
+    var encodingName = config.compressed == 1 ? 'AVCi100' : 'raw';
+
     this.tags = {
       format : [ 'video' ],
-      encodingName : [ 'raw' ],
+      encodingName : [ encodingName ],
       width : [ `${styphoon.modeWidth(inputStreamMode)}` ],
       height : [ `${styphoon.modeHeight(inputStreamMode)}` ],
       depth : [ `${styphoon.formatDepth(fixBMDCodes(config.format))}` ],
