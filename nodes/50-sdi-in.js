@@ -35,19 +35,28 @@ module.exports = function (RED) {
 
     var capture = new styphoon.Capture(config.deviceIndex,
       fixBMDCodes(config.mode), fixBMDCodes(config.format));
+    var inputStreamMode = capture.getDisplayMode();
+
+    this.log('Typhoon input receiving content of format: ' + inputStreamMode);
+
+    if(inputStreamMode != config.mode)
+    {
+        this.warn('Typhoon input mode ' + styphoon.intToBMCode(inputStreamMode) + ' conflicts with configured value of ' + config.mode);
+    }
+
     var node = this;
     var frameCount = 0;
-    var grainDuration = styphoon.modeGrainDuration(fixBMDCodes(config.mode));
+    var grainDuration = styphoon.modeGrainDuration(inputStreamMode);
     this.tags = {
       format : [ 'video' ],
       encodingName : [ 'raw' ],
-      width : [ `${styphoon.modeWidth(fixBMDCodes(config.mode))}` ],
-      height : [ `${styphoon.modeHeight(fixBMDCodes(config.mode))}` ],
+      width : [ `${styphoon.modeWidth(inputStreamMode)}` ],
+      height : [ `${styphoon.modeHeight(inputStreamMode)}` ],
       depth : [ `${styphoon.formatDepth(fixBMDCodes(config.format))}` ],
       packing : [ styphoon.formatFourCC(fixBMDCodes(config.format)) ],
       sampling : [ styphoon.formatSampling(fixBMDCodes(config.format)) ],
       clockRate : [ '90000' ],
-      interlace : [ (styphoon.modeInterlace(fixBMDCodes(config.mode))) ? '1' : '0' ],
+      interlace : [ (styphoon.modeInterlace(inputStreamMode)) ? '1' : '0' ],
       colorimetry : [ styphoon.formatColorimetry(fixBMDCodes(config.format)) ],
       grainDuration : [ `${grainDuration[0]}/${grainDuration[1]}`]
     };

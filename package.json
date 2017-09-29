@@ -20,7 +20,6 @@
   },
   "node-red": {
     "nodes": {
-      "sdi-typhoon-out": "nodes/50-sdi-out.js",
       "sdi-typhoon-in": "nodes/50-sdi-in.js"
     }
   },
