@@ -1,0 +1,35 @@
+{
+  "name": "node-red-contrib-dynamorse-sdi-typhoon-io",
+  "version": "0.1.0",
+  "description": "Dynamorse SDI Typhoon IO nodes for Node-RED",
+  "author": "Streampunk Media Ltd",
+  "license": "Apache-2.0",
+  "keywords": [
+    "node-red"
+  ],
+  "dependencies": {
+    "node-red-contrib-dynamorse-core": "^0.1.4",
+    "ajatation": "^0.1.0",
+    "promise": "^7.1.1"
+  },
+  "devDependencies": {
+    "tape": "^4.6.3"
+  },
+  "scripts": {
+    "test": "tape test/*Spec.js"
+  },
+  "node-red": {
+    "nodes": {
+      "sdi-typhoon-out": "nodes/50-sdi-out.js",
+      "sdi-typhoon-in": "nodes/50-sdi-in.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Streampunk/node-red-contrib-dynamorse-sdi-typhoon-io.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Streampunk/node-red-contrib-dynamorse-sdi-typhoon-io/issues"
+  },
+  "homepage": "https://github.com/Streampunk/node-red-contrib-dynamorse-sdi-typhoon-io#readme"
+}
