@@ -31,10 +31,11 @@
       source: { value: 1, validate: RED.validators.number() },
       compressed: {
           value: 0, validate: RED.validators.number()
-      }
+      },
+      audio : { value : true }	  
   },
     inputs:0,
-    outputs:3,
+    outputs:1,
     icon: "funnel.png",
     label: function() {
       return this.name || "sdi-typhoon-in";
@@ -86,6 +87,10 @@
     <option value="0" selected>Uncompressed</option>
     <option value="1" >Compressed</option>
   </select>
+</div>
+<div class="form-row">
+  <label for="node-input-audio"><i class="fa fa-microphone" aria-hidden="true"></i> audio?</label>
+  <input type="checkbox" id="node-input-audio">
 </div>
 
 </script>

@@ -25,11 +25,6 @@ function fixBMDCodes(code) {
   return styphoon.bmCodeToInt(code);
 }
 
-const fs = require('fs');
-function TEST_write_buffer(buffer) {
-    output = fs.appendFile('c:\\users\\zztop\\music\\testout.dat', buffer, 'binary');
-}
-
 module.exports = function (RED) {
   function SDIIn (config) {
     RED.nodes.createNode(this,config);
@@ -64,7 +59,7 @@ module.exports = function (RED) {
 
     this.vtags = {
       format : 'video',
-      encodingName : encodingName,
+      encodingName : [ encodingName ],
       width : `${styphoon.modeWidth(inputStreamMode)}`,
       height : `${styphoon.modeHeight(inputStreamMode)}`,
       depth : `${styphoon.formatDepth(fixBMDCodes(config.format))}`,
@@ -85,24 +80,27 @@ module.exports = function (RED) {
       grainDuration: grainDuration
     };
     this.baseTime = [ Date.now() / 1000|0, (Date.now() % 1000) * 1000000 ];
-    var cable = { video: [ { tags: this.vtags } ], backPressure: "video[0]" };
-    if (config.audio === true)
-      cable.audio = [ { tags: this.atags } ];
-    this.makeCable(cable);
+    var nodeAPI = this.context().global.get('nodeAPI');
+    var ledger = this.context().global.get('ledger');
+    var localName = config.name || `${config.type}-${config.id}`;
+    var localDescription = config.description || `${config.type}-${config.id}`;
+    var pipelinesID = config.device ?
+      RED.nodes.getNode(config.device).nmos_id :
+      this.context().global.get('pipelinesID');
+    var source = new ledger.Source(null, null, localName, localDescription,
+      "urn:x-nmos:format:video", null, null, pipelinesID, null);
+    var flow = new ledger.Flow(null, null, localName, localDescription,
+      "urn:x-nmos:format:video", this.vtags, source.id, null);
+    nodeAPI.putResource(source).catch(node.warn);
+    nodeAPI.putResource(flow).then(() => {
+        node.log('Flow stored. Starting capture.');
+        capture.start();
+      },
+      node.warn);
 
-    var ids = {
-      vFlowID: this.flowID('video[0]'),
-      vSourceID: this.sourceID('video[0]'),
-      aFlowID: (config.audio === true) ? this.flowID('audio[0]') : undefined,
-      aSourceID: (config.audio === true) ? this.sourceID('audio[0]') : undefined
-    };
+    this.eventMuncher(capture, 'frame', payload => {
+        //node.log('**Received Frame payload: ' + payload);
 
-    console.log(`You wanted audio?`, ids);
-
-    this.eventMuncher(capture, 'frame', (video, audio) => {
-        console.log('Event muching', video.length, audio.length);
-
-    TEST_write_buffer(audio);
       var grainTime = Buffer.allocUnsafe(10);
       grainTime.writeUIntBE(this.baseTime[0], 0, 6);
       grainTime.writeUInt32BE(this.baseTime[1], 6);
@@ -110,12 +108,8 @@ module.exports = function (RED) {
         grainDuration[0] * 1000000000 / grainDuration[1]|0 );
       this.baseTime = [ this.baseTime[0] + this.baseTime[1] / 1000000000|0,
         this.baseTime[1] % 1000000000];
-      var va = [ new Grain([video], grainTime, grainTime, null,
-        ids.vFlowID, ids.vSourceID, grainDuration) ]; // TODO Timecode support
-      if (config.audio === true && audio) va.push(
-        new Grain([audio], grainTime, grainTime, null,
-          ids.aFlowID, ids.aSourceID, grainDuration));
-      return va;
+      return new Grain([payload], grainTime, grainTime, null,
+        flow.id, source.id, grainDuration); // TODO Timecode support
     });
 
     capture.on('error', e => {
@@ -126,8 +120,6 @@ module.exports = function (RED) {
       this.close();
       capture.stop();
     });
-
-    capture.start();
   }
   util.inherits(SDIIn, redioactive.Funnel);
   RED.nodes.registerType("sdi-typhoon-in", SDIIn);
