@@ -46,7 +46,7 @@ module.exports = function (RED) {
         config.compressed == 1 ? true : false);
         
     if (config.audio == true)
-      capture.enableAudio(styphoon.bmdAudioSampleRate48kHz, styphoon.bmdAudioSampleType16bitInteger, 2);
+      capture.enableAudio(styphoon.bmdAudioSampleRate48kHz, styphoon.bmdAudioSampleType24bitInteger, 2);
 
     var inputStreamMode = capture.getDisplayMode();
 
@@ -65,23 +65,23 @@ module.exports = function (RED) {
     this.vtags = {
       format : 'video',
       encodingName : encodingName,
-      width : `${styphoon.modeWidth(inputStreamMode)}`,
-      height : `${styphoon.modeHeight(inputStreamMode)}`,
-      depth : `${styphoon.formatDepth(fixBMDCodes(config.format))}`,
+      width : styphoon.modeWidth(inputStreamMode),
+      height : styphoon.modeHeight(inputStreamMode),
+      depth : styphoon.formatDepth(fixBMDCodes(config.format)),
       packing : styphoon.formatFourCC(fixBMDCodes(config.format)),
       sampling : styphoon.formatSampling(fixBMDCodes(config.format)),
       clockRate : 90000,
-      interlace : (styphoon.modeInterlace(inputStreamMode)) ? '1' : '0',
+      interlace : styphoon.modeInterlace(inputStreamMode),
       colorimetry : styphoon.formatColorimetry(fixBMDCodes(config.format)),
       grainDuration : grainDuration
 //      grainDuration : `${grainDuration[0]}/${grainDuration[1]}`
     };
     this.atags = {
       format: 'audio',
-      encodingName: 'L16',
+      encodingName: 'L24',
       clockRate: 48000,
       channels: 2,
-      blockAlign: 4,
+      blockAlign: 6,
       grainDuration: grainDuration
     };
     this.baseTime = [ Date.now() / 1000|0, (Date.now() % 1000) * 1000000 ];
@@ -100,9 +100,9 @@ module.exports = function (RED) {
     console.log(`You wanted audio?`, ids);
 
     this.eventMuncher(capture, 'frame', (video, audio) => {
-        console.log('Event muching', video.length, audio.length);
+      console.log('Event muching', video.length, audio.length);
 
-    TEST_write_buffer(audio);
+      TEST_write_buffer(audio);
       var grainTime = Buffer.allocUnsafe(10);
       grainTime.writeUIntBE(this.baseTime[0], 0, 6);
       grainTime.writeUInt32BE(this.baseTime[1], 6);
@@ -110,11 +110,15 @@ module.exports = function (RED) {
         grainDuration[0] * 1000000000 / grainDuration[1]|0 );
       this.baseTime = [ this.baseTime[0] + this.baseTime[1] / 1000000000|0,
         this.baseTime[1] % 1000000000];
-      var va = [ new Grain([video], grainTime, grainTime, null,
-        ids.vFlowID, ids.vSourceID, grainDuration) ]; // TODO Timecode support
+      var va = []; //[ new Grain([video], grainTime, grainTime, null,
+        //ids.vFlowID, ids.vSourceID, grainDuration) ]; // TODO Timecode support
+      va.push(
+        new Grain([video], grainTime, grainTime, null,
+        ids.vFlowID, ids.vSourceID, grainDuration));
       if (config.audio === true && audio) va.push(
         new Grain([audio], grainTime, grainTime, null,
           ids.aFlowID, ids.aSourceID, grainDuration));
+      
       return va;
     });
 
