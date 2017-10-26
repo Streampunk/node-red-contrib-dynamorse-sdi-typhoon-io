@@ -25,10 +25,10 @@ function fixBMDCodes(code) {
   return styphoon.bmCodeToInt(code);
 }
 
-const fs = require('fs');
-function TEST_write_buffer(buffer) {
-    output = fs.appendFile('c:\\users\\zztop\\music\\testout.dat', buffer, 'binary');
-}
+//const fs = require('fs');
+//function TEST_write_buffer(buffer) {
+//    output = fs.appendFile('c:\\users\\zztop\\music\\testout.dat', buffer, 'binary');
+//}
 
 module.exports = function (RED) {
   function SDIIn (config) {
@@ -74,8 +74,8 @@ module.exports = function (RED) {
       interlace : styphoon.modeInterlace(inputStreamMode),
       colorimetry : styphoon.formatColorimetry(fixBMDCodes(config.format)),
       grainDuration : grainDuration
-//      grainDuration : `${grainDuration[0]}/${grainDuration[1]}`
     };
+
     this.atags = {
       format: 'audio',
       encodingName: 'L24',
@@ -84,6 +84,7 @@ module.exports = function (RED) {
       blockAlign: 6,
       grainDuration: grainDuration
     };
+    
     this.baseTime = [ Date.now() / 1000|0, (Date.now() % 1000) * 1000000 ];
     var cable = { video: [ { tags: this.vtags } ], backPressure: "video[0]" };
     if (config.audio === true)
@@ -99,10 +100,13 @@ module.exports = function (RED) {
 
     console.log(`You wanted audio?`, ids);
 
-    this.eventMuncher(capture, 'frame', (video, audio) => {
-      console.log('Event muching', video.length, audio.length);
+    var drop = 0;
 
-      TEST_write_buffer(audio);
+    this.eventMuncher(capture, 'frame', (video, audio) => {
+
+      console.log('Received event: ', video.length, audio.length);
+
+      //TEST_write_buffer(audio);
       var grainTime = Buffer.allocUnsafe(10);
       grainTime.writeUIntBE(this.baseTime[0], 0, 6);
       grainTime.writeUInt32BE(this.baseTime[1], 6);
@@ -110,11 +114,8 @@ module.exports = function (RED) {
         grainDuration[0] * 1000000000 / grainDuration[1]|0 );
       this.baseTime = [ this.baseTime[0] + this.baseTime[1] / 1000000000|0,
         this.baseTime[1] % 1000000000];
-      var va = []; //[ new Grain([video], grainTime, grainTime, null,
-        //ids.vFlowID, ids.vSourceID, grainDuration) ]; // TODO Timecode support
-      va.push(
-        new Grain([video], grainTime, grainTime, null,
-        ids.vFlowID, ids.vSourceID, grainDuration));
+      var va = [ new Grain([video], grainTime, grainTime, null,
+        ids.vFlowID, ids.vSourceID, grainDuration) ]; // TODO Timecode support
       if (config.audio === true && audio) va.push(
         new Grain([audio], grainTime, grainTime, null,
           ids.aFlowID, ids.aSourceID, grainDuration));

@@ -111,13 +111,15 @@
   <p>Prior to deployment, the kind of input video signal must be known, as must
   the index of the Typhoon interface card.</p>
 
+  <p><strong>NOTE:</strong> currently only Typhoon Firmware Design 4 (4 encoders
+  without FEC support) is supported. Using other firmware designs will result
+  in undefined behaviour. The firmware design can be verified/selected on the
+  'System' tab of the 'Typhoon PCIe Ingest Card' management application.</p>
+
   <h3>Outputs</h3>
   <ol>
    <li>Video.</li>
-   <li>Audio - see
-   <a href="https://github.com/Streampunk/ajatation/issues/5">this issue</a>.</li>
-   <li>Events including ancillary data - see
-   <a href="https://github.com/Streampunk/ajatation/issues/6">this issue</a>.</li>
+   <li>Audio</li>
   </ol>
 
   <h3>Parameters</h3>
@@ -135,8 +137,12 @@
     <td>Maximum number of grains to buffer before overflowing.</td>
    </tr>
    <tr>
-    <td><i class="fa fa-list" aria-hidden="true"></i> index</td>
-    <td>Index of the Aja card according to the SDK.</td>
+    <td><i class="fa fa-list" aria-hidden="true"></i> device index</td>
+    <td>Index of the Typhoon card according to the SDK.</td>
+   </tr>
+   <tr>
+    <td><i class="fa fa-list" aria-hidden="true"></i> channel index</td>
+    <td>Index of the input channel of the Typhoon card (can be 0-3 for firmware design 4).</td>
    </tr>
    <tr>
     <td><i class="fa fa-info-circle"></i> description</td>
@@ -147,13 +153,22 @@
     <td>Select or create an NMOS device for the output source and flow.</td>
    </tr>
    <tr>
-    <td><i class="fa fa-video-camera"></i> mode</td>
-    <td>Picture dimensions, timing and interlace modes supported by the
-    Aja SDK.</td>
+    <td><i class="fa fa-eye"></i> sampling</td>
+    <td>Bit depth and sampling combinations supported by the Typhoon SDK.</td>
    </tr>
    <tr>
-    <td><i class="fa fa-eye"></i> sampling</td>
-    <td>Bit depth and sampling combinations supported by the Aja SDK.</td>
+    <td><i class="fa fa-plug"></i> input source</td>
+    <td>Input source for channel. <strong>NOTE:</strong> only SDI is currently supported.</td>
+   </tr>
+   <tr>
+    <td><i class="fa fa-compress"></i> video</td>
+    <td>Output Uncompressed or Compressed video. <strong>NOTE:</strong> for compressed video to work, 
+    the 'Enable sending video from Typhoon' checkbox must be checked for that channel in the Typhoon config app.</td>
+   </tr>
+   <tr>
+    <td><i class="fa fa-microphone"></i> audio</td>
+    <td>Output an audio stream. <strong>NOTE:</strong> for audio to work, 
+    the 'Enable sending audio from Typhoon' checkbox must be checked for that channel in the Typhoon config app.</td>
    </tr>
   </table>
   </div>
@@ -164,9 +179,8 @@
   no means to control the live-running data rate provided by the Aja SDK.</p>
 
   <h3>Maturity</h3>
-  <p>The <a href="https://www.npmjs.com/package/ajatation">ajatation</a> library is
-  implemented with support for streaming frames of video from Backmagic hardware
-  into Node.js buffers. The work to integrate this library into dynamorse has
-  underway -
+  <p>The Typhoon bindings library has been implemented and tested with Firmware design 4, using SDI inputs.
+    Combinations using other firmware designs and Ethernet inputs have not been tested and are unlikely to 
+    work correctly.
   <a href="https://github.com/Streampunk/dynamorse/issues/12">status</a>.</p>
 </script>
