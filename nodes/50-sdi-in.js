@@ -76,6 +76,8 @@ module.exports = function (RED) {
       grainDuration : grainDuration
     };
 
+    console.log("Typhoon input vtags = " + JSON.stringify(this.vtags))
+
     this.atags = {
       format: 'audio',
       encodingName: 'L24',
@@ -99,8 +101,6 @@ module.exports = function (RED) {
     };
 
     console.log(`You wanted audio?`, ids);
-
-    var drop = 0;
 
     this.eventMuncher(capture, 'frame', (video, audio) => {
 
