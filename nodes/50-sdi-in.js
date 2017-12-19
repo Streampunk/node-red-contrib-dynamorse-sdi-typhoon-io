@@ -38,6 +38,11 @@ module.exports = function (RED) {
     if (!this.context().global.get('updated'))
       return this.log('Waiting for global context updated.');
 
+    var deviceSdkVersion = styphoon.deviceVersion();
+    var deviceIndex = styphoon.getFirstDevice();
+
+    console.info(`initializing Typhoon card. ${deviceSdkVersion}; first device = ${deviceIndex}`)
+
     var capture = new styphoon.Capture(
         parseInt(config.deviceIndex),
         parseInt(config.channelIndex),
